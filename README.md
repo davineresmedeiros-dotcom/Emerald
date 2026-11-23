@@ -16,7 +16,8 @@ What exists today:
 
 - An Android launcher module (`launcher/`, Java) with a single activity that loads the native core and shows its version.
 - A native C++ core (`native/`) built into `libemerald.so`, exposing the JNI entry points used by the launcher (`JNI_OnLoad` and `NativeBridge.nativeGetVersion`).
-- Gradle build configuration with the Android Gradle Plugin driving the CMake build of the native core.
+- Gradle build configuration with the Android Gradle Plugin driving the CMake build of the native core. Only 64-bit (`arm64-v8a`) is built for now.
+- A GitHub Actions workflow (`.github/workflows/ci.yml`) that builds the native core on a host and the debug APK on Android.
 - Reserved, empty locations for the future mod system (`native/src/mods/`, `launcher/.../mods/`) and for vendored native dependencies (`native/third_party/`).
 
 What does **not** exist yet:
@@ -24,13 +25,13 @@ What does **not** exist yet:
 - Any integration with the Geometry Dash process (injection, hooking, version handling).
 - Mod discovery, validation or loading.
 - A mod API.
-- Tests and CI.
+- Automated tests.
 - A Gradle wrapper (see [Building](#building)).
 
 ### Verification status
 
 - The native core has been compiled on a Linux host (GCC and Clang, `-Wall -Wextra`) against the JDK's JNI headers, and the JNI boundary was exercised from a JVM (`System.loadLibrary("emerald")` followed by `getVersion()`).
-- The Android build (`:launcher:assembleDebug`) has **not** been run. The Android SDK and NDK were not available when this base was written, so the Gradle/AGP/NDK configuration is based on the official compatibility documentation but is unverified.
+- The CI workflow has been added, but its result has **not** been confirmed yet. Until a run succeeds, the Gradle/AGP/NDK configuration is based on the official compatibility documentation and is unverified. Check the Actions tab for the current state.
 - The launcher activity has not been run on a device or emulator.
 
 ## Architecture (initial)
@@ -52,6 +53,7 @@ See [docs/architecture.md](docs/architecture.md) for details and for the open de
 
 ```
 .
+├── .github/workflows/ci.yml    CI: host build of the native core + Android debug APK
 ├── build.gradle.kts            Root Gradle build (plugin declarations)
 ├── settings.gradle.kts         Project name, modules, repositories
 ├── gradle.properties           Gradle settings
@@ -89,7 +91,9 @@ Toolchain the configuration targets:
 | NDK | 28.2.13676358 (AGP 9.4.0 default) |
 | CMake | 3.22.1 (SDK Manager) |
 
-The Gradle wrapper is not committed yet. With Gradle installed, generate it once and then build:
+The usual way to build is the GitHub Actions workflow: every push to `main` builds the debug APK and uploads it as the `emerald-launcher-debug` artifact. It can also be started manually from the Actions tab.
+
+To build locally, the Gradle wrapper is not committed yet. With Gradle installed, generate it once and then build:
 
 ```sh
 gradle wrapper --gradle-version 9.6.0
@@ -110,10 +114,10 @@ cmake --build build/host
 Planned, in rough order and subject to change:
 
 1. Decide and document how Emerald gets into the game process on Android.
-2. Handle differences between Geometry Dash versions and architectures (ARM64 / ARM32).
+2. Handle differences between Geometry Dash versions (64-bit / `arm64-v8a` only for now).
 3. Define the mod package format and the mod API.
 4. Implement mod discovery, validation and loading.
-5. Add tests and continuous integration.
+5. Add automated tests.
 
 ## License
 

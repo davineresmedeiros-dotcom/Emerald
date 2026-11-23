@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-host:
+    name: Native core (host sanity check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Provides JAVA_HOME, which CMake's FindJNI uses to locate jni.h.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configure
+        run: cmake -S native -B build/host
+
+      - name: Build
+        run: cmake --build build/host
+
+  android:
+    name: Android debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Installs the Android command-line tools and accepts the SDK licenses.
+      - uses: android-actions/setup-android@v3
+
+      # Versions must match launcher/build.gradle.kts and gradle/libs.versions.toml.
+      - name: Install SDK components
+        run: >
+          sdkmanager --install
+          "platforms;android-36"
+          "build-tools;36.0.0"
+          "ndk;28.2.13676358"
+          "cmake;3.22.1"
+
+      # The Gradle wrapper is not committed, so CI provides Gradle directly.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+
+      - name: Build debug APK
+        run: gradle --no-daemon :launcher:assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emerald-launcher-debug
+          path: launcher/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
