@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local machine configuration
+local.properties
+
+# Native build output (AGP / CMake)
+.cxx/
+.externalNativeBuild/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Build artifacts and signing material
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# OS files
+.DS_Store
+Thumbs.db

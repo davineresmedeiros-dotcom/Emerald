@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Emerald</string>
+    <string name="native_loaded">Emerald native core %1$s loaded</string>
+    <string name="native_failed">Emerald native core failed to load:\n%1$s</string>
+</resources>
